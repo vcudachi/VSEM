@@ -10,10 +10,10 @@
     LsaGetLogonSessionData
   This module is canonical because does not contain C# code snippets. 
   This module supports Windows platform only.
-  This module supports i86-x64 platform only, do not run in 32-bit powershell.
+  This module supports unicode platform only, do not run in non-unicode environment.
   This module supports Powershell 5.1 and Powershell 7. Powershell 5.1 is minimal requirement.
 .NOTES
-  Version:        1.0
+  Version:        1.1
   Author:         vcudachi
   Creation Date:  2024-0207@1805
   License:        MIT
@@ -33,11 +33,10 @@
 
 #Creates in-memory module VSEM and populates it with Win32 functions, enums and structures
 #Does not support powershell prior to 5.1 because of .NET Framework 4.7 usage
-#Does not support 32-bit powershell because of pointer arithmetics
 Function Import-VSEModule {
     Try {
         #Security checks
-        If ((-not [Environment]::Is64BitProcess) -or ($PSVersionTable.PSVersion -lt [Version]'5.1')) {
+        If ($PSVersionTable.PSVersion -lt [Version]'5.1') {
             Return [UInt32]'0xffffffff'
         }
         $TestCount = 0
@@ -101,7 +100,7 @@ Function Import-VSEModule {
         $null = $WTS_TYPE_CLASS_TypeBuilder.CreateType()
 
         #Struct WKSTA_USER_INFO_1 https://learn.microsoft.com/en-us/windows/win32/api/lmwksta/ns-lmwksta-wksta_user_info_1
-        $WKSTA_USER_INFO_1_TypeBuilder = $ModuleBuilder.DefineType("$ModuleName.WKSTA_USER_INFO_1", 'Public,BeforeFieldInit,SequentialLayout', [System.ValueType], 32)
+        $WKSTA_USER_INFO_1_TypeBuilder = $ModuleBuilder.DefineType("$ModuleName.WKSTA_USER_INFO_1", 'Public,BeforeFieldInit,SequentialLayout', [System.ValueType], [Reflection.Emit.PackingSize]::Unspecified)
         $null = $WKSTA_USER_INFO_1_TypeBuilder.DefineField('wkui1_username', [System.IntPtr], 'Public')
         $null = $WKSTA_USER_INFO_1_TypeBuilder.DefineField('wkui1_logon_domain', [System.IntPtr], 'Public')
         $null = $WKSTA_USER_INFO_1_TypeBuilder.DefineField('wkui1_oth_domains', [System.IntPtr], 'Public')
@@ -109,7 +108,7 @@ Function Import-VSEModule {
         $null = $WKSTA_USER_INFO_1_TypeBuilder.CreateType()
 
         #Struct SESSION_INFO_2 https://learn.microsoft.com/en-us/windows/win32/api/lmshare/ns-lmshare-session_info_2
-        $SESSION_INFO_2_TypeBuilder = $ModuleBuilder.DefineType("$ModuleName.SESSION_INFO_2", 'Public,BeforeFieldInit,SequentialLayout', [System.ValueType], 40)
+        $SESSION_INFO_2_TypeBuilder = $ModuleBuilder.DefineType("$ModuleName.SESSION_INFO_2", 'Public,BeforeFieldInit,SequentialLayout', [System.ValueType], [Reflection.Emit.PackingSize]::Unspecified)
         $null = $SESSION_INFO_2_TypeBuilder.DefineField('sesi2_cname', [System.IntPtr], 'Public')
         $null = $SESSION_INFO_2_TypeBuilder.DefineField('sesi2_username', [System.IntPtr], 'Public')
         $null = $SESSION_INFO_2_TypeBuilder.DefineField('sesi2_num_opens', [UInt32], 'Public')
@@ -120,7 +119,7 @@ Function Import-VSEModule {
         $null = $SESSION_INFO_2_TypeBuilder.CreateType()
 
         #Struct WTS_SESSION_INFO_1W https://learn.microsoft.com/en-us/windows/win32/api/wtsapi32/ns-wtsapi32-wts_session_info_1w
-        $WTS_SESSION_INFO_1W_TypeBuilder = $ModuleBuilder.DefineType("$ModuleName.WTS_SESSION_INFO_1W", 'Public,BeforeFieldInit,SequentialLayout', [System.ValueType], 56)
+        $WTS_SESSION_INFO_1W_TypeBuilder = $ModuleBuilder.DefineType("$ModuleName.WTS_SESSION_INFO_1W", 'Public,BeforeFieldInit,SequentialLayout', [System.ValueType], [Reflection.Emit.PackingSize]::Unspecified)
         $null = $WTS_SESSION_INFO_1W_TypeBuilder.DefineField('ExecEnvId', [Uint32], 'Public')
         $null = $WTS_SESSION_INFO_1W_TypeBuilder.DefineField('State', [VSEM.WTS_CONNECTSTATE_CLASS], 'Public')
         $null = $WTS_SESSION_INFO_1W_TypeBuilder.DefineField('SessionId', [Uint32], 'Public')
@@ -132,27 +131,27 @@ Function Import-VSEModule {
         $null = $WTS_SESSION_INFO_1W_TypeBuilder.CreateType()
 
         #Struct LUID https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-luid
-        $LUID_TypeBuilder = $ModuleBuilder.DefineType("$ModuleName.LUID", 'Public,BeforeFieldInit,SequentialLayout', [System.ValueType], 8)
+        $LUID_TypeBuilder = $ModuleBuilder.DefineType("$ModuleName.LUID", 'Public,BeforeFieldInit,SequentialLayout', [System.ValueType], [Reflection.Emit.PackingSize]::Unspecified)
         $null = $LUID_TypeBuilder.DefineField('LowPart', [UInt32], 'Public')
         $null = $LUID_TypeBuilder.DefineField('HighPart', [Int32], 'Public')
         $null = $LUID_TypeBuilder.CreateType()
 
         #Struct LSA_UNICODE_STRING https://learn.microsoft.com/en-us/windows/win32/api/lsalookup/ns-lsalookup-lsa_unicode_string
-        $LSA_UNICODE_STRING_TypeBuilder = $ModuleBuilder.DefineType("$ModuleName.LSA_UNICODE_STRING", 'Public,BeforeFieldInit,SequentialLayout', [System.ValueType], 12)
+        $LSA_UNICODE_STRING_TypeBuilder = $ModuleBuilder.DefineType("$ModuleName.LSA_UNICODE_STRING", 'Public,BeforeFieldInit,SequentialLayout', [System.ValueType], [Reflection.Emit.PackingSize]::Unspecified)
         $null = $LSA_UNICODE_STRING_TypeBuilder.DefineField('Length', [UInt16], 'Public')
         $null = $LSA_UNICODE_STRING_TypeBuilder.DefineField('MaximumLength', [UInt16], 'Public')
         $null = $LSA_UNICODE_STRING_TypeBuilder.DefineField('Buffer', [IntPtr], 'Public')
         $null = $LSA_UNICODE_STRING_TypeBuilder.CreateType()
 
         #Struct LSA_LAST_INTER_LOGON_INFO https://learn.microsoft.com/en-us/windows/win32/api/ntsecapi/ns-ntsecapi-lsa_last_inter_logon_info
-        $LSA_LAST_INTER_LOGON_INFO_TypeBuilder = $ModuleBuilder.DefineType("$ModuleName.LSA_LAST_INTER_LOGON_INFO", 'Public,BeforeFieldInit,SequentialLayout', [System.ValueType], 24)
+        $LSA_LAST_INTER_LOGON_INFO_TypeBuilder = $ModuleBuilder.DefineType("$ModuleName.LSA_LAST_INTER_LOGON_INFO", 'Public,BeforeFieldInit,SequentialLayout', [System.ValueType], [Reflection.Emit.PackingSize]::Unspecified)
         $null = $LSA_LAST_INTER_LOGON_INFO_TypeBuilder.DefineField('LastSuccessfulLogon', [Int64], 'Public')
         $null = $LSA_LAST_INTER_LOGON_INFO_TypeBuilder.DefineField('LastFailedLogon', [Int64], 'Public')
         $null = $LSA_LAST_INTER_LOGON_INFO_TypeBuilder.DefineField('FailedAttemptCountSinceLastSuccessfulLogon', [UInt64], 'Public')
         $null = $LSA_LAST_INTER_LOGON_INFO_TypeBuilder.CreateType()
 
         #Struct SECURITY_LOGON_SESSION_DATA https://learn.microsoft.com/en-us/windows/win32/api/ntsecapi/ns-ntsecapi-security_logon_session_data
-        $SECURITY_LOGON_SESSION_DATA_TypeBuilder = $ModuleBuilder.DefineType("$ModuleName.SECURITY_LOGON_SESSION_DATA", 'Public,BeforeFieldInit,SequentialLayout', [System.ValueType], 272)
+        $SECURITY_LOGON_SESSION_DATA_TypeBuilder = $ModuleBuilder.DefineType("$ModuleName.SECURITY_LOGON_SESSION_DATA", 'Public,BeforeFieldInit,SequentialLayout', [System.ValueType], [Reflection.Emit.PackingSize]::Unspecified)
         $null = $SECURITY_LOGON_SESSION_DATA_TypeBuilder.DefineField('Size', [UInt32], 'Public')
         $null = $SECURITY_LOGON_SESSION_DATA_TypeBuilder.DefineField('LogonId', [VSEM.LUID], 'Public')
         $null = $SECURITY_LOGON_SESSION_DATA_TypeBuilder.DefineField('Username', [VSEM.LSA_UNICODE_STRING], 'Public')
@@ -165,7 +164,7 @@ Function Import-VSEModule {
         $null = $SECURITY_LOGON_SESSION_DATA_TypeBuilder.DefineField('LogonServer', [VSEM.LSA_UNICODE_STRING], 'Public')
         $null = $SECURITY_LOGON_SESSION_DATA_TypeBuilder.DefineField('DnsDomainName', [VSEM.LSA_UNICODE_STRING], 'Public')
         $null = $SECURITY_LOGON_SESSION_DATA_TypeBuilder.DefineField('Upn', [VSEM.LSA_UNICODE_STRING], 'Public')
-        $null = $SECURITY_LOGON_SESSION_DATA_TypeBuilder.DefineField('UserFlags', [UInt64], 'Public')
+        $null = $SECURITY_LOGON_SESSION_DATA_TypeBuilder.DefineField('UserFlags', $(If ([Environment]::Is64BitProcess) {[UInt64]} Else {[UInt32]}), 'Public')
         $null = $SECURITY_LOGON_SESSION_DATA_TypeBuilder.DefineField('LastLogonInfo', [VSEM.LSA_LAST_INTER_LOGON_INFO], 'Public')
         $null = $SECURITY_LOGON_SESSION_DATA_TypeBuilder.DefineField('LogonScript', [VSEM.LSA_UNICODE_STRING], 'Public')
         $null = $SECURITY_LOGON_SESSION_DATA_TypeBuilder.DefineField('ProfilePath', [VSEM.LSA_UNICODE_STRING], 'Public')
@@ -345,7 +344,7 @@ Function Get-VSEMWkstaLoggedOnUsers {
     Param()
 
     If ((Import-VSEModule) -ne 0) {
-        Write-Error -Message 'Unable to create in-memory module. Please, rerun this cmdlet in new 64-bit powershell process (version 5.1/7.0 or above)'
+        Write-Error -Message 'Unable to create in-memory module. Please, rerun this cmdlet in new powershell process (version 5.1/7.0 or above)'
         Return
     }
     $Buffer = [intptr]::Zero
@@ -355,7 +354,7 @@ Function Get-VSEMWkstaLoggedOnUsers {
     $Result = [VSEM.Netapi32]::NetWkstaUserEnum($null, 1, [ref]$Buffer, [UInt32]'0xffffffff', [ref]$entriesread, [ref]$totalentries, [ref]$null)
     For ($i = 0; $i -lt $entriesread; $i++) {
         #$WKSTA_USER_INFO_1 = [Runtime.InteropServices.Marshal]::PtrToStructure[VSEM.WKSTA_USER_INFO_1]($Buffer + [int64]($i * 32))
-        $WKSTA_USER_INFO_1 = [Runtime.InteropServices.Marshal]::PtrToStructure($Buffer + [int64]($i * 32), [System.Type][VSEM.WKSTA_USER_INFO_1])
+        $WKSTA_USER_INFO_1 = [Runtime.InteropServices.Marshal]::PtrToStructure([intptr]::Add($Buffer, ($i * [Runtime.InteropServices.Marshal]::SizeOf([System.Type][VSEM.WKSTA_USER_INFO_1]))), [System.Type][VSEM.WKSTA_USER_INFO_1])
         $UserInfo1 = [PSCustomObject]@{
             UserName     = [Runtime.InteropServices.Marshal]::PtrToStringUni($WKSTA_USER_INFO_1.wkui1_username)
             UserDomain   = [Runtime.InteropServices.Marshal]::PtrToStringUni($WKSTA_USER_INFO_1.wkui1_logon_domain)
@@ -374,7 +373,7 @@ Function Get-VSEMNetSessions {
     Param()
 
     If ((Import-VSEModule) -ne 0) {
-        Write-Error -Message 'Unable to create in-memory module. Please, rerun this cmdlet in new 64-bit powershell process (version 5.1/7.0 or above)'
+        Write-Error -Message 'Unable to create in-memory module. Please, rerun this cmdlet in new powershell process (version 5.1/7.0 or above)'
         Return
     }
     $Buffer = [intptr]::Zero
@@ -384,7 +383,7 @@ Function Get-VSEMNetSessions {
     $Result = [VSEM.Netapi32]::NetSessionEnum($null, $null, $null, 2, [ref]$Buffer, [UInt32]'0xffffffff', [ref]$entriesread, [ref]$totalentries, [ref]$null)
     For ($i = 0; $i -lt $entriesread; $i++) {
         #$SESSION_INFO_2 = [Runtime.InteropServices.Marshal]::PtrToStructure[VSEM.SESSION_INFO_2]($Buffer + [int64]($i * 40))
-        $SESSION_INFO_2 = [Runtime.InteropServices.Marshal]::PtrToStructure($Buffer + [int64]($i * 40), [System.Type][VSEM.SESSION_INFO_2])
+        $SESSION_INFO_2 = [Runtime.InteropServices.Marshal]::PtrToStructure([intptr]::Add($Buffer, ($i * [Runtime.InteropServices.Marshal]::SizeOf([System.Type][VSEM.SESSION_INFO_2]))), [System.Type][VSEM.SESSION_INFO_2])
         $Session2 = [PSCustomObject]@{
             ComputerName   = [Runtime.InteropServices.Marshal]::PtrToStringUni($SESSION_INFO_2.sesi2_cname)
             UserName       = [Runtime.InteropServices.Marshal]::PtrToStringUni($SESSION_INFO_2.sesi2_username)
@@ -406,7 +405,7 @@ Function Get-VSEMTSSessions {
     Param()
 
     If ((Import-VSEModule) -ne 0) {
-        Write-Error -Message 'Unable to create in-memory module. Please, rerun this cmdlet in new 64-bit powershell process (version 5.1/7.0 or above)'
+        Write-Error -Message 'Unable to create in-memory module. Please, rerun this cmdlet in new powershell process (version 5.1/7.0 or above)'
         Return
     }
     $Buffer = [intptr]::Zero
@@ -415,11 +414,11 @@ Function Get-VSEMTSSessions {
     $Result = [VSEM.wtsapi32]::WTSEnumerateSessionsExW([IntPtr]::Zero, [ref]1, 0, [ref]$Buffer, [ref]$Count)
     For ($i = 0; $i -lt $Count; $i++) {
         #$WTS_SESSION_INFO_1W = [Runtime.InteropServices.Marshal]::PtrToStructure[VSEM.WTS_SESSION_INFO_1W]($Buffer + [int64]($i * 56))
-        $WTS_SESSION_INFO_1W = [Runtime.InteropServices.Marshal]::PtrToStructure($Buffer + [int64]($i * 56), [System.Type][VSEM.WTS_SESSION_INFO_1W])
+        $WTS_SESSION_INFO_1W = [Runtime.InteropServices.Marshal]::PtrToStructure([intptr]::Add($Buffer, ($i * [Runtime.InteropServices.Marshal]::SizeOf([System.Type][VSEM.WTS_SESSION_INFO_1W]))), [System.Type][VSEM.WTS_SESSION_INFO_1W])
         $Session1W = [PSCustomObject]@{
-            ExecEnvId    = $WTS_SESSION_INFO_1W.ExecEnvId
-            State        = $WTS_SESSION_INFO_1W.State
-            SessionId    = $WTS_SESSION_INFO_1W.SessionId
+            ExecEnvId   = $WTS_SESSION_INFO_1W.ExecEnvId
+            State       = $WTS_SESSION_INFO_1W.State
+            SessionId   = $WTS_SESSION_INFO_1W.SessionId
             SessionName = [Runtime.InteropServices.Marshal]::PtrToStringUni($WTS_SESSION_INFO_1W.pSessionName)
             HostName    = [Runtime.InteropServices.Marshal]::PtrToStringUni($WTS_SESSION_INFO_1W.pHostName)
             UserName    = [Runtime.InteropServices.Marshal]::PtrToStringUni($WTS_SESSION_INFO_1W.pUserName)
@@ -439,13 +438,13 @@ Function Get-VSEMTSSessions {
 Function Invoke-VSEMTSLogoffSession {
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true,ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [UInt32]$SessionId,
         [Switch]$Wait # Indicates whether the operation is synchronous.If Wait is specified, the function returns when the session is logged off. If Wait is ommited, the function returns immediately.
     )
 
     If ((Import-VSEModule) -ne 0) {
-        Write-Error -Message 'Unable to create in-memory module. Please, rerun this cmdlet in new 64-bit powershell process (version 5.1/7.0 or above)'
+        Write-Error -Message 'Unable to create in-memory module. Please, rerun this cmdlet in new powershell process (version 5.1/7.0 or above)'
         Return
     }
     If ($Wait) {
@@ -463,7 +462,7 @@ Function Get-VSEMSecSessions {
     Param()
 
     If ((Import-VSEModule) -ne 0) {
-        Write-Error -Message 'Unable to create in-memory module. Please, rerun this cmdlet in new 64-bit powershell process (version 5.1/7.0 or above)'
+        Write-Error -Message 'Unable to create in-memory module. Please, rerun this cmdlet in new powershell process (version 5.1/7.0 or above)'
         Return
     }
 
@@ -473,34 +472,35 @@ Function Get-VSEMSecSessions {
     $Result = [VSEM.Secur32]::LsaEnumerateLogonSessions([ref]$LogonSessionCount, [ref]$LogonSessionList)
     For ($i = 0; $i -lt $LogonSessionCount; $i++) {
         $ppLogonSessionData = [IntPtr]::Zero
-        $ResultData = [VSEM.Secur32]::LsaGetLogonSessionData($LogonSessionList + [Int64]($i * 8), [ref]$ppLogonSessionData)
+        $ResultData = [VSEM.Secur32]::LsaGetLogonSessionData([intptr]::Add($LogonSessionList, ($i * [Runtime.InteropServices.Marshal]::SizeOf([System.Type][IntPtr]))), [ref]$ppLogonSessionData)
         If ($ResultData -eq 0) {
             $LogonSessionData = [Runtime.InteropServices.Marshal]::PtrToStructure($ppLogonSessionData, [System.Type][VSEM.SECURITY_LOGON_SESSION_DATA])
             $SECURITY_LOGON_SESSION_DATA = [PSCustomObject]@{
+                Size                                       = $LogonSessionData.Size
                 LogonId                                    = @{LowPart = $LogonSessionData.LogonId.LowPart; HighPart = $LogonSessionData.LogonId.HighPart }
-                Username                                   = [Runtime.InteropServices.Marshal]::PtrToStringUni($LogonSessionData.Username.Buffer)
-                LogonDomain                                = [Runtime.InteropServices.Marshal]::PtrToStringUni($LogonSessionData.LogonDomain.Buffer)
-                AuthenticationPackage                      = [Runtime.InteropServices.Marshal]::PtrToStringUni($LogonSessionData.AuthenticationPackage.Buffer)
+                Username                                   = [Runtime.InteropServices.Marshal]::PtrToStringUni($LogonSessionData.Username.Buffer,$LogonSessionData.Username.Length/2)
+                LogonDomain                                = [Runtime.InteropServices.Marshal]::PtrToStringUni($LogonSessionData.LogonDomain.Buffer,$LogonSessionData.LogonDomain.Length/2)
+                AuthenticationPackage                      = [Runtime.InteropServices.Marshal]::PtrToStringUni($LogonSessionData.AuthenticationPackage.Buffer,$LogonSessionData.AuthenticationPackage.Length/2)
                 LogonType                                  = $LogonSessionData.LogonType
                 SessionId                                  = $LogonSessionData.Session
-                SID                                        = Try{[System.Security.Principal.SecurityIdentifier]::New($LogonSessionData.PSiD)}Catch{};
-                LogonTime                                  = [datetime]::FromFileTime([Math]::Min(2650467635999999999,$LogonSessionData.LogonTime))
-                LogonServer                                = [Runtime.InteropServices.Marshal]::PtrToStringUni($LogonSessionData.LogonServer.Buffer)
-                DnsDomainName                              = [Runtime.InteropServices.Marshal]::PtrToStringUni($LogonSessionData.DnsDomainName.Buffer)
-                Upn                                        = [Runtime.InteropServices.Marshal]::PtrToStringUni($LogonSessionData.Upn.Buffer)
+                SID                                        = Try { [System.Security.Principal.SecurityIdentifier]::New($LogonSessionData.PSiD) }Catch {};
+                LogonTime                                  = [datetime]::FromFileTime([Math]::Min(2650467635999999999, $LogonSessionData.LogonTime))
+                LogonServer                                = [Runtime.InteropServices.Marshal]::PtrToStringUni($LogonSessionData.LogonServer.Buffer,$LogonSessionData.LogonServer.Length/2)
+                DnsDomainName                              = [Runtime.InteropServices.Marshal]::PtrToStringUni($LogonSessionData.DnsDomainName.Buffer,$LogonSessionData.DnsDomainName.Length/2)
+                Upn                                        = [Runtime.InteropServices.Marshal]::PtrToStringUni($LogonSessionData.Upn.Buffer,$LogonSessionData.Upn.Length/2)
                 UserFlags                                  = $LogonSessionData.UserFlags
-                LastSuccessfulLogon                        = [datetime]::FromFileTime([Math]::Min(2650467635999999999,$LogonSessionData.LastLogonInfo.LastSuccessfulLogon))
-                LastFailedLogon                            = [datetime]::FromFileTime([Math]::Min(2650467635999999999,$LogonSessionData.LastLogonInfo.LastFailedLogon))
+                LastSuccessfulLogon                        = [datetime]::FromFileTime([Math]::Min(2650467635999999999, $LogonSessionData.LastLogonInfo.LastSuccessfulLogon))
+                LastFailedLogon                            = [datetime]::FromFileTime([Math]::Min(2650467635999999999, $LogonSessionData.LastLogonInfo.LastFailedLogon))
                 FailedAttemptCountSinceLastSuccessfulLogon = $LogonSessionData.LastLogonInfo.FailedAttemptCountSinceLastSuccessfulLogon
-                LogonScript                                = [Runtime.InteropServices.Marshal]::PtrToStringUni($LogonSessionData.LogonScript.Buffer)
-                ProfilePath                                = [Runtime.InteropServices.Marshal]::PtrToStringUni($LogonSessionData.ProfilePath.Buffer)
-                HomeDirectory                              = [Runtime.InteropServices.Marshal]::PtrToStringUni($LogonSessionData.HomeDirectory.Buffer)
-                HomeDirectoryDrive                         = [Runtime.InteropServices.Marshal]::PtrToStringUni($LogonSessionData.HomeDirectoryDrive.Buffer)
-                LogoffTime                                 = [datetime]::FromFileTime([Math]::Min(2650467635999999999,$LogonSessionData.LogoffTime))
-                KickOffTime                                = [datetime]::FromFileTime([Math]::Min(2650467635999999999,$LogonSessionData.KickOffTime))
-                PasswordLastSet                            = [datetime]::FromFileTime([Math]::Min(2650467635999999999,$LogonSessionData.PasswordLastSet))
-                PasswordCanChange                          = [datetime]::FromFileTime([Math]::Min(2650467635999999999,$LogonSessionData.PasswordCanChange))
-                PasswordMustChange                         = [datetime]::FromFileTime([Math]::Min(2650467635999999999,$LogonSessionData.PasswordMustChange))
+                LogonScript                                = [Runtime.InteropServices.Marshal]::PtrToStringUni($LogonSessionData.LogonScript.Buffer,$LogonSessionData.LogonScript.Length/2)
+                ProfilePath                                = [Runtime.InteropServices.Marshal]::PtrToStringUni($LogonSessionData.ProfilePath.Buffer,$LogonSessionData.ProfilePath.Length/2)
+                HomeDirectory                              = [Runtime.InteropServices.Marshal]::PtrToStringUni($LogonSessionData.HomeDirectory.Buffer,$LogonSessionData.HomeDirectory.Length/2)
+                HomeDirectoryDrive                         = [Runtime.InteropServices.Marshal]::PtrToStringUni($LogonSessionData.HomeDirectoryDrive.Buffer,$LogonSessionData.HomeDirectoryDrive.Length/2)
+                LogoffTime                                 = [datetime]::FromFileTime([Math]::Min(2650467635999999999, $LogonSessionData.LogoffTime))
+                KickOffTime                                = [datetime]::FromFileTime([Math]::Min(2650467635999999999, $LogonSessionData.KickOffTime))
+                PasswordLastSet                            = [datetime]::FromFileTime([Math]::Min(2650467635999999999, $LogonSessionData.PasswordLastSet))
+                PasswordCanChange                          = [datetime]::FromFileTime([Math]::Min(2650467635999999999, $LogonSessionData.PasswordCanChange))
+                PasswordMustChange                         = [datetime]::FromFileTime([Math]::Min(2650467635999999999, $LogonSessionData.PasswordMustChange))
             }
             $Sessions.Add($SECURITY_LOGON_SESSION_DATA)
             $null = [VSEM.Secur32]::LsaFreeReturnBuffer($ppLogonSessionData)

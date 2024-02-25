@@ -9,7 +9,7 @@ This module contains cmdlets designed to retrieve information about user and oth
 ## Important information
 * This module is canonical because does not contain C# code snippets. 
 * This module supports Windows platform only.
-* This module supports i86-x64 platform only, **do not run in 32-bit powershell**.
+* This module supports unicode platform only, **do not run in non-unicode environment**.
 * This module supports Powershell 5.1 and Powershell 7. Powershell 5.1 is minimal requirement.
 
 ## Created by
